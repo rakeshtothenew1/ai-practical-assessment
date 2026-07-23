@@ -1,0 +1,33 @@
+---
+description: Drupal 11 + DDEV project conventions (commands, module path, coding standards)
+alwaysApply: true
+---
+
+# Drupal 11 + DDEV rules
+
+## Runtime
+
+- Assume **all** PHP/Composer/Drush/MySQL/PHPUnit commands run **inside DDEV**.
+- Prefix shell suggestions with `ddev exec`, `ddev composer`, `ddev drush`, or `ddev ssh` as appropriate.
+- Never suggest bare host `php`, `composer`, `drush`, or `mysql`.
+- PHPUnit: `ddev exec phpunit` or `ddev exec vendor/bin/phpunit`.
+
+## Code location
+
+- Custom application code lives under `web/modules/custom/ticket_management`.
+- Do not place ticket-management domain logic outside that module unless Drupal requires it (e.g. theme Twig under `web/themes/custom/`).
+
+## Standards & architecture
+
+- Follow **Drupal coding standards** and **PSR-12**.
+- State machine logic must be a **standalone service class** (injected via `services.yml`), not inline in controllers/forms/hooks.
+- Prefer dependency injection over `\Drupal::service()` in new code.
+
+## Frontend / tooling
+
+- Twig + vanilla JS only.
+- **No Node.js, npm, yarn, pnpm, webpack, Vite, Gulp, or frontend build tools** anywhere in the project.
+
+## APIs
+
+- Use JSON:API where it fits; extend with a **custom REST** layer for ticket-management needs.
