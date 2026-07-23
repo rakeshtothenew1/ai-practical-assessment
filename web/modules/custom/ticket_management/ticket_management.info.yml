@@ -1,0 +1,11 @@
+name: 'Ticket Management'
+type: module
+description: 'Support ticket management with custom Ticket and Ticket Comment entities, state machine, REST API, and Twig UI.'
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:user
+  - drupal:system
+  - drupal:serialization
+  - drupal:rest
+  - drupal:jsonapi

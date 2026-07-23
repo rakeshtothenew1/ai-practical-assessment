@@ -1,0 +1,28 @@
+access ticket overview:
+  title: 'Access ticket overview'
+  description: 'View the ticket list and search UI.'
+
+view ticket:
+  title: 'View tickets'
+  description: 'View ticket detail and comments.'
+
+create ticket:
+  title: 'Create tickets'
+  description: 'Create new support tickets.'
+
+edit ticket:
+  title: 'Edit tickets'
+  description: 'Update ticket fields (excluding status transitions).'
+
+transition ticket status:
+  title: 'Transition ticket status'
+  description: 'Change ticket status via the allowed state machine.'
+
+create ticket comment:
+  title: 'Create ticket comments'
+  description: 'Add comments to tickets.'
+
+administer ticket_management:
+  title: 'Administer ticket management'
+  description: 'Administer Ticket Management settings and bypass access checks where applicable.'
+  restrict access: true

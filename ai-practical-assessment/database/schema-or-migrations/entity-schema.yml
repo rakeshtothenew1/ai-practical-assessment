@@ -1,0 +1,74 @@
+entity_types:
+  ticket:
+    module: ticket_management
+    class: Drupal\ticket_management\Entity\Ticket
+    base_table: ticket
+    entity_keys:
+      id: id
+      uuid: uuid
+      label: title
+    base_fields:
+      title:
+        type: string
+        required: true
+        max_length: 255
+      description:
+        type: string_long
+        required: true
+        notes: "Maps assignment text_long to plain string_long"
+      priority:
+        type: list_string
+        required: true
+        default: medium
+        allowed_values:
+          - low
+          - medium
+          - high
+      status:
+        type: list_string
+        required: true
+        default: open
+        allowed_values:
+          - open
+          - in_progress
+          - resolved
+          - closed
+          - cancelled
+      assigned_to:
+        type: entity_reference
+        target_type: user
+        required: false
+      created_by:
+        type: entity_reference
+        target_type: user
+        required: true
+      created:
+        type: created
+      changed:
+        type: changed
+  ticket_comment:
+    module: ticket_management
+    class: Drupal\ticket_management\Entity\TicketComment
+    base_table: ticket_comment
+    entity_keys:
+      id: id
+      uuid: uuid
+    base_fields:
+      ticket_id:
+        type: entity_reference
+        target_type: ticket
+        required: true
+      message:
+        type: string_long
+        required: true
+        notes: "Maps assignment text_long to plain string_long"
+      created_by:
+        type: entity_reference
+        target_type: user
+        required: true
+      created:
+        type: created
+
+# Applied by Drupal entity schema on:
+#   ddev drush en ticket_management -y
+#   ddev drush updb -y   # ticket_management_update_9001

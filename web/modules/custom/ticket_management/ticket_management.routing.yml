@@ -1,0 +1,9 @@
+# HTML routes will be added as forms/controllers are implemented.
+# Placeholder route so the module routing file is valid and discoverable.
+ticket_management.overview:
+  path: '/tickets'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketController::overview'
+    _title: 'Tickets'
+  requirements:
+    _permission: 'access ticket overview'

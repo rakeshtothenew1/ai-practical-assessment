@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Hook implementations for the Ticket Management module.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_help().
+ */
+function ticket_management_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.ticket_management':
+      return '<p>' . t('Provides a support ticket management system with custom Ticket and Ticket Comment entities.') . '</p>';
+  }
+}

@@ -1,0 +1,41 @@
+# Reference snapshot of demo user seed (not executed by Drupal).
+# Runtime seed: ticket_management_seed_demo_users() in ticket_management.install
+
+role:
+  id: ticket_agent
+  label: Ticket agent
+  permissions:
+    - access ticket overview
+    - view ticket
+    - create ticket
+    - edit ticket
+    - transition ticket status
+    - create ticket comment
+    - access user profiles
+
+users:
+  - name: ticket_admin
+    mail: ticket.admin@example.com
+    roles: [administrator]
+    pass: TicketDemo!23
+  - name: agent_alice
+    mail: alice.agent@example.com
+    roles: [ticket_agent]
+    pass: TicketDemo!23
+  - name: agent_bob
+    mail: bob.agent@example.com
+    roles: [ticket_agent]
+    pass: TicketDemo!23
+  - name: requester_carol
+    mail: carol.requester@example.com
+    roles: [ticket_agent]
+    pass: TicketDemo!23
+  - name: requester_dave
+    mail: dave.requester@example.com
+    roles: [ticket_agent]
+    pass: TicketDemo!23
+
+notes:
+  - Created via Drupal User::create() API, not raw SQL
+  - UIDs auto-assigned; see setup-notes.md
+  - Idempotent by username
