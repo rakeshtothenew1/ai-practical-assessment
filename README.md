@@ -2,17 +2,20 @@
 
 Drupal 11 application managed with Composer and DDEV. No Node.js or frontend build tooling.
 
+**Ticket system docs (setup, tests, API, limitations):** [`ai-practical-assessment/README.md`](ai-practical-assessment/README.md)
+
 ## Stack
 
 | Component | Version / choice |
 |-----------|------------------|
 | CMS | Drupal 11 |
-| PHP | 8.3 (in DDEV) |
+| PHP | 8.3 (in DDEV) — no host PHP required |
 | Web server | Nginx + PHP-FPM |
 | Database | MySQL 8.0 (default; MariaDB switchable) |
-| Local env | DDEV |
+| Local env | DDEV + Docker |
 | CLI | Drush 13 |
 | Package manager | Composer 2 (via `ddev composer`) |
+| Frontend | Twig + vanilla JS (no Node.js / npm) |
 
 ## Prerequisites
 
@@ -20,7 +23,7 @@ Drupal 11 application managed with Composer and DDEV. No Node.js or frontend bui
 - [DDEV](https://ddev.com/get-started/) v1.24+
 - Git
 
-Do **not** run Composer or PHP against this project on the host. Use DDEV wrappers so PHP 8.3 and the project lockfile stay consistent.
+Do **not** run Composer or PHP against this project on the host. Use DDEV wrappers so PHP 8.3 and the project lockfile stay consistent. Node.js is not needed.
 
 ## Quick start
 
@@ -41,13 +44,34 @@ ddev drush site:install standard \
   --site-name="AI Practical Assessment" \
   -y
 
+# Enable ticket module, schema updates, seed demo users
+ddev drush en ticket_management -y
+ddev drush updb -y
+ddev drush cr
+ddev drush php:eval "print_r(ticket_management_seed_demo_users());"
+
 # Open the site
-ddev launch
+ddev launch /tickets
 ```
 
-Site URL: https://ai-practical-assessment.ddev.site
+Site URL: https://ai-practical-assessment.ddev.site · Tickets UI: `/tickets`
 
-Local admin (after the install command above): `admin` / `admin` — change after first login.
+Local admin (after the install command above): `admin` / `admin` — change after first login. Demo users: see [`ai-practical-assessment/database/seed-data/README.md`](ai-practical-assessment/database/seed-data/README.md) (password `TicketDemo!23`).
+
+## Tests
+
+```bash
+ddev exec vendor/bin/phpunit -c web/core/phpunit.xml.dist \
+  web/modules/custom/ticket_management/tests
+```
+
+## API
+
+Custom REST under `/api/tickets`. Full contract: [`ai-practical-assessment/api-contract.md`](ai-practical-assessment/api-contract.md).
+
+## Known limitations
+
+See [Known limitations](ai-practical-assessment/README.md#known-limitations) in the assessment README (MVP scope, flat permissions, LIKE search, local-only demo passwords).
 
 ## Project layout
 
