@@ -17,7 +17,12 @@ database:
 use_dns_when_possible: true
 composer_root: .
 composer_version: "2"
-web_environment: []
+web_environment:
+  # SIMPLETEST_BASE_URL must be reachable from inside the web container.
+  # Use http://web (not https://ai-practical-assessment.ddev.site) for PHPUnit BrowserTestBase.
+  - SIMPLETEST_DB=mysql://db:db@db/db
+  - SIMPLETEST_BASE_URL=http://web
+  - BROWSERTEST_OUTPUT_DIRECTORY=/var/www/html/web/sites/simpletest/browser_output
 nodejs_version: "24"
 corepack_enable: false
 disable_upload_dirs_warning: true

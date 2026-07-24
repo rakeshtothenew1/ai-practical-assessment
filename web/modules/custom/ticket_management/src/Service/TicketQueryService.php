@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Drupal\ticket_management\Service;
 
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Database\Query\SelectInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Database API queries for ticket list search and status filter.
@@ -13,7 +15,15 @@ final class TicketQueryService {
 
   public function __construct(
     private readonly Connection $database,
+    private readonly EntityTypeManagerInterface $entityTypeManager,
   ) {}
+
+  /**
+   * Returns the base table name for the ticket entity.
+   */
+  private function ticketTable(): string {
+    return $this->entityTypeManager->getStorage('ticket')->getBaseTable() ?? 'ticket';
+  }
 
   /**
    * Allowed ticket status values.
@@ -43,12 +53,14 @@ final class TicketQueryService {
       throw new \InvalidArgumentException(sprintf('Invalid status filter: %s', $status));
     }
 
-    $count_query = $this->database->select('ticket', 't');
+    $table = $this->ticketTable();
+
+    $count_query = $this->database->select($table, 't');
     $count_query->addExpression('COUNT(t.id)', 'total');
     $this->applyFilters($count_query, $search, $status);
     $total = (int) $count_query->execute()->fetchField();
 
-    $query = $this->database->select('ticket', 't')
+    $query = $this->database->select($table, 't')
       ->fields('t', ['id'])
       ->orderBy('t.created', 'DESC')
       ->range($offset, $limit);
@@ -66,11 +78,8 @@ final class TicketQueryService {
 
   /**
    * Applies search and status conditions to a select query.
-   *
-   * @param \Drupal\Core\Database\Query\SelectInterface $query
-   *   The query.
    */
-  private function applyFilters($query, string $search, ?string $status): void {
+  private function applyFilters(SelectInterface $query, string $search, ?string $status): void {
     if ($search !== '') {
       $like = '%' . $this->database->escapeLike($search) . '%';
       $or = $query->orConditionGroup()

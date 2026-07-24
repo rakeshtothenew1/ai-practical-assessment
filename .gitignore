@@ -21,7 +21,7 @@
 /web/libraries/
 
 # -----------------------------------------------------------------------------
-# Drupal public/private files & test output
+# Drupal public/private files & PHPUnit / BrowserTest output (generated, not source)
 # -----------------------------------------------------------------------------
 /web/sites/*/files/
 /web/sites/*/private/

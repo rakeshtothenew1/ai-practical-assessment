@@ -45,6 +45,7 @@ ticket_management.api.tickets.post:
   requirements:
     _permission: 'create ticket'
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
 
 ticket_management.api.tickets.get:
   path: '/api/tickets/{id}'
@@ -63,6 +64,7 @@ ticket_management.api.tickets.patch:
   requirements:
     _permission: 'edit ticket'
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
     id: \d+
 
 ticket_management.api.tickets.patch_status:
@@ -73,6 +75,7 @@ ticket_management.api.tickets.patch_status:
   requirements:
     _permission: 'transition ticket status'
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
     id: \d+
 
 ticket_management.api.tickets.comments.post:
@@ -83,4 +86,5 @@ ticket_management.api.tickets.comments.post:
   requirements:
     _permission: 'create ticket comment'
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
     id: \d+

@@ -6,6 +6,9 @@ core_version_requirement: ^11
 dependencies:
   - drupal:user
   - drupal:system
+  - drupal:options
+  - drupal:field
+  - drupal:file
   - drupal:serialization
   - drupal:rest
   - drupal:jsonapi

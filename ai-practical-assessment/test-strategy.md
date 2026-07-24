@@ -2,99 +2,109 @@
 
 How we verify `ticket_management` against [`requirements-analysis.md`](requirements-analysis.md), [`api-contract.md`](api-contract.md), and [`design-notes.md`](design-notes.md).
 
-**Runner (always in DDEV):**
+## Runner (always via DDEV)
+
+Install PHPUnit tooling once (if `vendor/bin/phpunit` is missing):
 
 ```bash
-ddev exec vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/custom/ticket_management/tests
-# or module-local phpunit.xml if provided
-ddev exec phpunit web/modules/custom/ticket_management/tests
+ddev composer require --dev drupal/core-dev --with-all-dependencies
 ```
 
-No Node-based front-end test runner in MVP.
+**Scoped to this module (Unit + Kernel + Functional):**
+
+```bash
+ddev exec 'vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/custom/ticket_management/tests'
+```
+
+`SIMPLETEST_DB` and `BROWSERTEST_OUTPUT_DIRECTORY` are set in `.ddev/config.yaml` `web_environment`.
+
+**Important:** `SIMPLETEST_BASE_URL` must be `http://web` (in-container hostname). Do **not** use `https://ai-practical-assessment.ddev.site` — that URL is for browsers on the host and is not reachable from PHPUnit inside the web container.
+
+Restart after changing DDEV config: `ddev restart`.
+
+```bash
+ddev exec 'vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/custom/ticket_management/tests'
+```
+
+Or override explicitly (matches what worked for Functional tests):
+
+```bash
+ddev exec 'SIMPLETEST_BASE_URL=http://web SIMPLETEST_DB=mysql://db:db@db/db vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/custom/ticket_management/tests'
+```
+
+No Node-based front-end test runner.
 
 ---
 
 ## Test pyramid
 
-| Level | Tool | Focus |
-|-------|------|--------|
-| **Unit** | PHPUnit | `TicketStateMachine` transition matrix; pure helpers (LIKE escape) |
-| **Kernel** | PHPUnit + Drupal kernel | Entity save/load, constraints, query service against DB, access handler permissions |
-| **Functional** (optional stretch) | BrowserTestBase | Twig list/detail/create happy paths + error messengers |
+| Level | Class | Focus |
+|-------|--------|--------|
+| **Unit** | `TicketStateMachineUnitTest` | Pure PHP transition matrix — no DB |
+| **Kernel** | `TicketStateMachineKernelTest` | Entity `save()` rejects illegal transitions via `preSave` |
+| **Functional** | `TicketApiFunctionalTest` | **Mandatory core tier** — HTTP REST: **200** valid status, **422** invalid |
 
 ---
 
-## Unit — state machine
+## Unit — `TicketStateMachineUnitTest`
 
-Cover every **allowed** and representative **disallowed** edge:
-
-| From | To | Expect |
-|------|-----|--------|
-| open → in_progress | allow |
-| open → cancelled | allow |
-| in_progress → resolved | allow |
-| in_progress → cancelled | allow |
+| From → To | Expect |
+|-----------|--------|
+| open → in_progress / cancelled | allow |
+| in_progress → resolved / cancelled | allow |
 | resolved → closed | allow |
-| open → closed / resolved | deny |
-| closed → * | deny |
-| cancelled → * | deny |
-| same status → same | deny |
+| open → closed / resolved | deny (`InvalidTicketTransitionException`) |
+| closed → * / cancelled → * | deny |
+| same → same | deny |
 
-Assert `canTransition` / `assertTransition` / `getAllowedTargets`. No Drupal bootstrap required if matrix is pure PHP.
-
----
-
-## Kernel — entities, validation, query, API-ish services
-
-| Area | Cases |
-|------|--------|
-| Ticket create | Defaults `status=open`; `created_by` set; rejects invalid priority |
-| Ticket update | Non-status fields change; status via machine only |
-| Assignee | Valid uid OK; invalid uid → violation |
-| Comment | Requires existing ticket; empty message fails; missing ticket fails |
-| TicketQueryService | Empty `q` returns pages; status filter; keyword on title/description; invalid status rejected |
-| Access | User without permission denied; with permission allowed |
-
-Use DDEV MySQL (kernel tests’ DB connection as configured in phpunit.xml).
+Assert `canTransition()`, `assertTransition()`, `getAllowedTargets()`.
 
 ---
 
-## Edge cases → tests
+## Kernel — `TicketStateMachineKernelTest`
 
-| Edge case | Test type | Assertion |
-|-----------|-----------|-----------|
-| Invalid transition | Unit (+ kernel apply) | Exception / 422 path; DB status unchanged |
-| Empty search | Kernel | Full (paginated) result set; not error |
-| Comment on nonexistent ticket | Kernel / HTTP | 404; no `ticket_comment` row |
-| XSS in comment | Functional or render kernel | Escaped output in Twig (`<script>` not executed) |
-| Orphaned assignee | Kernel | Invalid assign on save fails; display placeholder if fixture orphan |
-| Concurrent status update | Kernel | Second transition against new status denied if illegal |
+| Case | Assertion |
+|------|-----------|
+| Create ticket | Status forced to `open` |
+| Valid transition then save | Persisted status updates |
+| Invalid transition then save | Exception; reloaded status unchanged |
 
 ---
 
-## Manual / exploratory (Twig UI)
+## Functional — `TicketApiFunctionalTest` (mandatory)
 
-Walk [`ui-flow.md`](ui-flow.md) states per screen:
+Hits custom REST with an authenticated user:
 
-- List: loading → success / empty / error  
-- Create: validation errors vs redirect success  
-- Detail: transitions only showing allowed targets; comment empty error; terminal tickets  
-
-Commands: `ddev start`, `ddev drush en ticket_management -y`, `ddev launch /tickets`.
-
----
-
-## Out of scope for automated MVP
-
-- Full JSON:API compliance suite  
-- Load / performance testing  
-- Cross-browser matrix beyond one modern browser smoke check  
-- Visual regression  
+| Request | Expect |
+|---------|--------|
+| `PATCH /api/tickets/{id}/status` `{"status":"in_progress"}` from `open` | **200** |
+| `PATCH /api/tickets/{id}/status` `{"status":"closed"}` from `open` | **422** + JSON error body (`invalid_transition`) |
+| `GET /api/tickets` | **200** |
+| `POST /api/tickets` | **201** |
 
 ---
 
-## Definition of done (testing)
+## Edge cases coverage map
 
-- [ ] All state-machine unit tests green via `ddev exec`  
-- [ ] Kernel coverage for create/list filter/comment/transition happy + fail paths  
-- [ ] Edge cases in the table above either automated or explicitly manual-checked and noted in `test-results.md`  
+| Edge case | Covered by |
+|-----------|------------|
+| Invalid transition | Unit + Kernel + Functional (422) |
+| Empty search | Manual / future kernel query test |
+| Comment on missing ticket | Manual / future API test |
+| XSS in comment | Manual Twig/JS (`escapeHtml`) |
+| Concurrent stale transition | Kernel re-read + Functional 422 |
+
+---
+
+## Manual UI smoke
+
+Walk [`ui-flow.md`](ui-flow.md): `/tickets`, `/tickets/add`, `/tickets/{id}` after `ddev launch`.
+
+---
+
+## Definition of done
+
+- [ ] Unit tests green via `ddev exec` phpunit (module path)
+- [ ] Kernel: invalid save rejected
+- [ ] Functional: valid transition **200**, invalid **422**
+- [ ] Results noted in `test-results.md`

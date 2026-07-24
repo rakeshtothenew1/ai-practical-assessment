@@ -15,6 +15,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\ticket_management\Service\TicketStateMachineInterface;
 use Drupal\ticket_management\TicketAccessControlHandler;
 use Drupal\ticket_management\TicketListBuilder;
+use Drupal\ticket_management\TicketStorageSchema;
 use Drupal\user\UserInterface;
 
 /**
@@ -37,6 +38,7 @@ use Drupal\user\UserInterface;
     'access' => TicketAccessControlHandler::class,
     'view_builder' => EntityViewBuilder::class,
     'list_builder' => TicketListBuilder::class,
+    'storage_schema' => TicketStorageSchema::class,
   ],
   links: [
     'canonical' => '/tickets/{ticket}',

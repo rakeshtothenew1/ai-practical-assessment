@@ -45,7 +45,9 @@ final class TicketApiController extends ControllerBase {
   }
 
   /**
-   * GET /api/tickets?search=&status=
+   * Lists tickets, optionally filtered by search keyword and status.
+   *
+   * Route: GET /api/tickets?search=&status=&page=&limit=
    */
   public function collection(Request $request): JsonResponse {
     $search = $request->query->get('search');
@@ -88,7 +90,9 @@ final class TicketApiController extends ControllerBase {
   }
 
   /**
-   * GET /api/tickets/{id}
+   * Returns a single ticket with its comments.
+   *
+   * Route: GET /api/tickets/{id}
    */
   public function get(int $id): JsonResponse {
     $ticket = $this->loadTicket($id);
@@ -105,7 +109,9 @@ final class TicketApiController extends ControllerBase {
   }
 
   /**
-   * POST /api/tickets
+   * Creates a new ticket (always starts in the open status).
+   *
+   * Route: POST /api/tickets
    */
   public function post(Request $request): JsonResponse {
     $payload = $this->decodeJson($request);
@@ -166,7 +172,9 @@ final class TicketApiController extends ControllerBase {
   }
 
   /**
-   * PATCH /api/tickets/{id}
+   * Updates a ticket's editable fields (title, description, priority, assignee).
+   *
+   * Route: PATCH /api/tickets/{id}
    */
   public function patch(int $id, Request $request): JsonResponse {
     $ticket = $this->loadTicket($id);
@@ -255,7 +263,9 @@ final class TicketApiController extends ControllerBase {
   }
 
   /**
-   * PATCH /api/tickets/{id}/status
+   * Transitions a ticket to a new status via the state machine.
+   *
+   * Route: PATCH /api/tickets/{id}/status
    */
   public function patchStatus(int $id, Request $request): JsonResponse {
     $ticket = $this->loadTicket($id);
@@ -303,7 +313,9 @@ final class TicketApiController extends ControllerBase {
   }
 
   /**
-   * POST /api/tickets/{id}/comments
+   * Adds a comment to a ticket.
+   *
+   * Route: POST /api/tickets/{id}/comments
    */
   public function postComment(int $id, Request $request): JsonResponse {
     $ticket = $this->loadTicket($id);

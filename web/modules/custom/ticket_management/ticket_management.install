@@ -38,6 +38,16 @@ function ticket_management_update_9001(): void {
 }
 
 /**
+ * Adds indexes on ticket.status and ticket.created for the list query.
+ *
+ * Apply with: ddev drush updb -y
+ */
+function ticket_management_update_9002(): void {
+  \Drupal::entityDefinitionUpdateManager()
+    ->updateEntityType(\Drupal::entityTypeManager()->getDefinition('ticket'));
+}
+
+/**
  * Creates the ticket_agent role and five demo users (idempotent).
  *
  * Seed reference copy: ai-practical-assessment/database/seed-data/
@@ -96,8 +106,10 @@ function ticket_management_seed_demo_users(): array {
   ];
 
   $created = [];
+  $storage = \Drupal::entityTypeManager()->getStorage('user');
   foreach ($demo_users as $info) {
-    $existing = user_load_by_name($info['name']);
+    $existing_users = $storage->loadByProperties(['name' => $info['name']]);
+    $existing = $existing_users ? reset($existing_users) : NULL;
     if ($existing) {
       $created[$info['name']] = (int) $existing->id();
       continue;
