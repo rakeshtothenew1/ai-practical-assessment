@@ -85,6 +85,11 @@ class TicketApiFunctionalTest extends BrowserTestBase {
       'CONTENT_TYPE' => 'application/json',
       'HTTP_ACCEPT' => 'application/json',
     ];
+    $method_upper = strtoupper($method);
+    // Write routes require _csrf_request_header_token; match ticket-app.js.
+    if (!in_array($method_upper, ['GET', 'HEAD'], TRUE)) {
+      $server['HTTP_X_CSRF_TOKEN'] = $this->getSessionCsrfToken();
+    }
     $content = $payload === NULL ? NULL : json_encode($payload, JSON_THROW_ON_ERROR);
 
     $client = $this->getSession()->getDriver()->getClient();
@@ -100,6 +105,17 @@ class TicketApiFunctionalTest extends BrowserTestBase {
       'status' => (int) $response->getStatusCode(),
       'body' => $body,
     ];
+  }
+
+  /**
+   * Fetches the session CSRF token used by _csrf_request_header_token routes.
+   */
+  protected function getSessionCsrfToken(): string {
+    $client = $this->getSession()->getDriver()->getClient();
+    $client->request('GET', '/session/token');
+    $token = trim((string) $client->getResponse()->getContent());
+    $this->assertNotSame('', $token, 'Expected a non-empty CSRF session token.');
+    return $token;
   }
 
   /**
