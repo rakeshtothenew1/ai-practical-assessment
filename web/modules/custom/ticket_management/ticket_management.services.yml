@@ -1,3 +1,7 @@
-# Service definitions for ticket_management.
-# Concrete services (state machine, query, etc.) are added in later steps.
-services: {}
+services:
+  ticket_management.state_machine:
+    class: Drupal\ticket_management\Service\TicketStateMachine
+
+  ticket_management.ticket_query:
+    class: Drupal\ticket_management\Service\TicketQueryService
+    arguments: ['@database']

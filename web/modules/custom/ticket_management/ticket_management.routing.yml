@@ -1,5 +1,4 @@
-# HTML routes will be added as forms/controllers are implemented.
-# Placeholder route so the module routing file is valid and discoverable.
+# HTML UI routes.
 ticket_management.overview:
   path: '/tickets'
   defaults:
@@ -7,3 +6,63 @@ ticket_management.overview:
     _title: 'Tickets'
   requirements:
     _permission: 'access ticket overview'
+
+# ---------------------------------------------------------------------------
+# Custom REST API (JSON)
+# ---------------------------------------------------------------------------
+
+ticket_management.api.tickets.collection:
+  path: '/api/tickets'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketApiController::collection'
+  methods: [GET]
+  requirements:
+    _permission: 'access ticket overview'
+
+ticket_management.api.tickets.post:
+  path: '/api/tickets'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketApiController::post'
+  methods: [POST]
+  requirements:
+    _permission: 'create ticket'
+    _user_is_logged_in: 'TRUE'
+
+ticket_management.api.tickets.get:
+  path: '/api/tickets/{id}'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketApiController::get'
+  methods: [GET]
+  requirements:
+    _permission: 'view ticket'
+    id: \d+
+
+ticket_management.api.tickets.patch:
+  path: '/api/tickets/{id}'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketApiController::patch'
+  methods: [PATCH]
+  requirements:
+    _permission: 'edit ticket'
+    _user_is_logged_in: 'TRUE'
+    id: \d+
+
+ticket_management.api.tickets.patch_status:
+  path: '/api/tickets/{id}/status'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketApiController::patchStatus'
+  methods: [PATCH]
+  requirements:
+    _permission: 'transition ticket status'
+    _user_is_logged_in: 'TRUE'
+    id: \d+
+
+ticket_management.api.tickets.comments.post:
+  path: '/api/tickets/{id}/comments'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketApiController::postComment'
+  methods: [POST]
+  requirements:
+    _permission: 'create ticket comment'
+    _user_is_logged_in: 'TRUE'
+    id: \d+

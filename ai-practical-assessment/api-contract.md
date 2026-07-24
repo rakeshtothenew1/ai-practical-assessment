@@ -2,22 +2,24 @@
 
 Base URL (DDEV): `https://ai-practical-assessment.ddev.site`
 
-Two surfaces:
+**Custom REST** under `/api/tickets` (routing.yml + `TicketApiController` → `JsonResponse`).
 
-1. **Custom REST** under `/api/tickets` — primary for list/search, transitions, and assessment clarity  
-2. **JSON:API** under `/jsonapi` — entity CRUD aligned with Drupal conventions  
+Auth: authenticated session (logged-in user) for mutating endpoints. Permissions enforced per route.
 
-Auth: session cookie (Twig UI) or Basic Auth / OAuth as configured. CSRF required for cookie-authenticated unsafe methods on custom routes that use Drupal’s form/API CSRF patterns.
+Content-Type: `application/json` for request/response bodies unless noted.
 
-Unless noted, request/response bodies are `application/json`.
+**Enums**
 
-Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progress`, `resolved`, `closed`, `cancelled`; `low`|`medium`|`high`|`critical`).
+| Field | Values |
+|-------|--------|
+| `priority` | `low`, `medium`, `high` |
+| `status` | `open`, `in_progress`, `resolved`, `closed`, `cancelled` |
 
 ---
 
 ## Common schemas
 
-### Ticket (response)
+### Ticket
 
 ```json
 {
@@ -34,14 +36,14 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 }
 ```
 
-`assignedTo` may be `null`. Timestamps ISO-8601 UTC (API layer formats from Unix `created`/`changed`).
+`assignedTo` may be `null`. Timestamps are ISO-8601 UTC.
 
-### Comment (response)
+### Comment
 
 ```json
 {
   "id": 44,
-  "uuid": "…",
+  "uuid": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
   "ticketId": 12,
   "message": "Looking into mail logs.",
   "createdBy": 3,
@@ -49,7 +51,7 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 }
 ```
 
-### Error envelope
+### Error body
 
 ```json
 {
@@ -62,16 +64,16 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 
 | HTTP | When |
 |------|------|
-| 400 | Malformed JSON |
-| 401 | Unauthenticated |
+| 400 | Malformed / missing JSON body |
+| 401 | Unauthenticated (mutating routes) |
 | 403 | Missing permission |
-| 404 | Ticket/comment not found |
-| 422 | Validation / illegal transition |
+| 404 | Ticket not found |
+| 422 | Validation failed or **invalid status transition** |
 | 500 | Unexpected server error |
 
 ---
 
-## Custom REST endpoints
+## Endpoints
 
 ### 1. List / search tickets
 
@@ -83,8 +85,8 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 
 | Param | Type | Required | Rules |
 |-------|------|----------|--------|
-| `q` | string | no | Keyword; trimmed; match title OR description (`LIKE`); empty = no keyword filter |
-| `status` | string | no | One of status enum; invalid → 422 |
+| `search` | string | no | Keyword; trimmed; `LIKE` on title OR description; empty/omitted = no keyword filter |
+| `status` | string | no | One of status enum; invalid → **422** |
 | `page` | int | no | Default `1`; min 1 |
 | `limit` | int | no | Default `25`; max `100` |
 
@@ -92,7 +94,7 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 
 ```json
 {
-  "data": [ /* Ticket */ ],
+  "data": [ /* Ticket, … */ ],
   "meta": {
     "page": 1,
     "limit": 25,
@@ -101,22 +103,38 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 }
 ```
 
-**Validation / behavior**
+Empty `search` with no `status` returns the full paginated list (not an error).
 
-- Empty `q` and omitted `status` → paginated full list (not an error).  
-- Empty `q` with `status` → filter by status only.  
-- Escape `%` / `_` in `q` for LIKE.
-
-**Errors:** `401`, `403`, `422` (bad `status` / pagination)
+**Errors:** `403`, `422` (invalid `status`)
 
 ---
 
-### 2. Create ticket
+### 2. Get ticket
+
+`GET /api/tickets/{id}`
+
+**Permission:** `view ticket`
+
+**Path:** `id` — positive integer
+
+**Response `200`**
+
+```json
+{
+  "data": { /* Ticket */ },
+  "comments": [ /* Comment[] chronological oldest→newest */ ]
+}
+```
+
+**Errors:** `403`, `404`
+
+---
+
+### 3. Create ticket
 
 `POST /api/tickets`
 
-**Permission:** `create ticket`  
-**Content-Type:** `application/json`
+**Permission:** `create ticket` (authenticated)
 
 **Request**
 
@@ -132,36 +150,15 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 | Field | Required | Validation |
 |-------|----------|------------|
 | `title` | yes | 1–255 chars |
-| `description` | yes | 1–10000 chars |
-| `priority` | yes | enum |
-| `assignedTo` | no | null or existing user id |
-| `status` | — | **Ignored if sent**; always stored as `open` |
+| `description` | yes | non-empty |
+| `priority` | yes | `low` \| `medium` \| `high` |
+| `assignedTo` | no | omit/null or existing user id |
+| `status` | — | **Ignored**; always stored as `open` |
 | `createdBy` | — | Set from current user |
 
-**Response `201`** — Ticket body; `Location: /api/tickets/{id}`
+**Response `201`** — Ticket object; header `Location: /api/tickets/{id}`
 
-**Errors:** `401`, `403`, `422` (field errors; invalid assignee)
-
----
-
-### 3. Get ticket (detail)
-
-`GET /api/tickets/{id}`
-
-**Permission:** `view ticket`
-
-**Path:** `id` — integer entity id
-
-**Response `200`**
-
-```json
-{
-  "data": { /* Ticket */ },
-  "comments": [ /* Comment[] chronological */ ]
-}
-```
-
-**Errors:** `401`, `403`, `404`
+**Errors:** `400`, `401`, `403`, `422`
 
 ---
 
@@ -169,15 +166,15 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 
 `PATCH /api/tickets/{id}`
 
-**Permission:** `edit ticket`
+**Permission:** `edit ticket` (authenticated)
 
-**Request** (all fields optional; at least one required)
+**Request** (at least one field)
 
 ```json
 {
   "title": "Updated title",
   "description": "Updated body",
-  "priority": "critical",
+  "priority": "medium",
   "assignedTo": null
 }
 ```
@@ -185,22 +182,24 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 | Field | Validation |
 |-------|------------|
 | `title` | if present: 1–255 |
-| `description` | if present: 1–10000 |
+| `description` | if present: non-empty |
 | `priority` | if present: enum |
-| `assignedTo` | if present: null or existing user |
-| `status` | **Must not be accepted** → `422` with message to use transition endpoint |
+| `assignedTo` | if present: null or existing user id |
+| `status` | **Not allowed** → **422** (use status endpoint) |
 
-**Response `200`** — Ticket (with bumped `updatedAt`)
+**Response `200`** — Ticket (bumped `updatedAt`)
 
-**Errors:** `401`, `403`, `404`, `422`
+**Errors:** `400`, `401`, `403`, `404`, `422`
 
 ---
 
 ### 5. Transition ticket status
 
-`POST /api/tickets/{id}/transition`
+`PATCH /api/tickets/{id}/status`
 
-**Permission:** `transition ticket status`
+**Permission:** `transition ticket status` (authenticated)
+
+**Must call** `TicketStateMachine` (service `ticket_management.state_machine`). Validates against the **current persisted** status before applying.
 
 **Request**
 
@@ -212,55 +211,44 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 
 | Field | Required | Validation |
 |-------|----------|------------|
-| `status` | yes | Target status enum; must be allowed from **current persisted** status via state machine |
+| `status` | yes | Target status enum; must be an allowed transition |
 
-**Behavior**
+**Allowed transitions**
 
-1. Load ticket; 404 if missing.  
-2. Read current `status`.  
-3. `TicketStateMachine::assertTransition($current, $target)`.  
-4. Set status; save; bump `changed`.  
+| From | To |
+|------|-----|
+| `open` | `in_progress`, `cancelled` |
+| `in_progress` | `resolved`, `cancelled` |
+| `resolved` | `closed` |
+| `closed` | _(none)_ |
+| `cancelled` | _(none)_ |
 
 **Response `200`** — Ticket with new status
 
-**Error `422` examples**
+**Response `422` (invalid transition)** — JSON error body, no status change:
 
 ```json
 {
   "message": "Transition from open to closed is not allowed.",
   "errors": [
-    { "field": "status", "code": "invalid_transition", "message": "Transition from open to closed is not allowed." }
+    {
+      "field": "status",
+      "code": "invalid_transition",
+      "message": "Transition from open to closed is not allowed."
+    }
   ]
 }
 ```
 
-**Errors:** `401`, `403`, `404`, `422` (illegal transition / missing status)
+**Errors:** `400`, `401`, `403`, `404`, `422`
 
 ---
 
-### 6. List comments for ticket
-
-`GET /api/tickets/{id}/comments`
-
-**Permission:** `view ticket`
-
-**Response `200`**
-
-```json
-{
-  "data": [ /* Comment[] oldest→newest */ ]
-}
-```
-
-**Errors:** `401`, `403`, `404` (ticket)
-
----
-
-### 7. Add comment
+### 6. Add comment
 
 `POST /api/tickets/{id}/comments`
 
-**Permission:** `create ticket comment`
+**Permission:** `create ticket comment` (authenticated)
 
 **Request**
 
@@ -272,66 +260,33 @@ Status/priority values: see [`data-model.md`](data-model.md) (`open`, `in_progre
 
 | Field | Required | Validation |
 |-------|----------|------------|
-| `message` | yes | 1–5000 chars; stored as plain text |
+| `message` | yes | 1–5000 chars |
 
 **Response `201`** — Comment
 
-**Errors:** `401`, `403`, `404` (nonexistent ticket — no row created), `422` (empty/too long message)
+**Errors:** `400`, `401`, `403`, `404` (nonexistent ticket — no comment created), `422`
 
 ---
 
-## JSON:API endpoints (supplementary)
+## Implementation map
 
-Entity type / bundle: `ticket` / `ticket`, `ticket_comment` / `ticket_comment`.  
-UUIDs in paths. Media type: `application/vnd.api+json`.
+| Method | Path | Controller method |
+|--------|------|-------------------|
+| `GET` | `/api/tickets` | `TicketApiController::collection` |
+| `POST` | `/api/tickets` | `TicketApiController::post` |
+| `GET` | `/api/tickets/{id}` | `TicketApiController::get` |
+| `PATCH` | `/api/tickets/{id}` | `TicketApiController::patch` |
+| `PATCH` | `/api/tickets/{id}/status` | `TicketApiController::patchStatus` |
+| `POST` | `/api/tickets/{id}/comments` | `TicketApiController::postComment` |
 
-| Method | Path | Maps to | Notes |
-|--------|------|---------|--------|
-| `GET` | `/jsonapi/ticket/ticket` | List | Prefer custom `GET /api/tickets` for `q`+`status` |
-| `GET` | `/jsonapi/ticket/ticket/{uuid}` | Detail | Attributes mirror base fields |
-| `POST` | `/jsonapi/ticket/ticket` | Create | Server forces `status=open`; reject client status override |
-| `PATCH` | `/jsonapi/ticket/ticket/{uuid}` | Update | Disallow `status` attribute change; use custom transition |
-| `GET` | `/jsonapi/ticket_comment/ticket_comment` | List comments | Filter by `ticket_id` relationship |
-| `POST` | `/jsonapi/ticket_comment/ticket_comment` | Create comment | Require `ticket_id` relationship; 404/422 if ticket missing |
-
-**JSON:API error** objects per spec (`errors[].status`, `detail`, `source.pointer`).
-
-**Transition:** not expressed as generic PATCH — use `POST /api/tickets/{id}/transition` only.
+Routes: `web/modules/custom/ticket_management/ticket_management.routing.yml`  
+Services: `ticket_management.state_machine`, `ticket_management.ticket_query`
 
 ---
 
-## Twig UI ↔ API mapping
-
-| UI route | Primary backend |
-|----------|-----------------|
-| `GET /tickets` | Form/DB list or `GET /api/tickets` |
-| `POST /tickets/add` | Entity form → same rules as `POST /api/tickets` |
-| `GET /tickets/{ticket}` | Entity view + comments |
-| `POST` comment on detail | Same rules as `POST /api/tickets/{id}/comments` |
-| Transition control | Same rules as transition endpoint / state machine |
-
-Frontend must surface `message` / field `errors` for 422/404 responses (messenger or inline).
-
----
-
-## Validation rules (global)
-
-| Rule | Applied on |
-|------|------------|
-| Authenticated for all mutating endpoints | POST/PATCH |
-| Permission checks | Every endpoint |
-| Enum membership | `priority`, `status` |
-| Max lengths | title, description, message |
-| User existence | `assignedTo`, authors set server-side |
-| State machine | Transition endpoint only |
-| XSS | Output escaping; no raw HTML responses for message/title |
-| Concurrent transition | Re-load status before assert; stale illegal target → 422 |
-
----
-
-## Out of scope (API)
+## Out of scope
 
 - `DELETE` ticket or comment  
+- Changing status via `PATCH /api/tickets/{id}`  
 - User CRUD  
-- Changing status via PATCH/JSON:API attributes  
-- Search including comment body  
+- Search of comment bodies  
