@@ -1,4 +1,7 @@
 services:
+  Drupal\ticket_management\Service\TicketStateMachineInterface:
+    alias: ticket_management.state_machine
+
   ticket_management.state_machine:
     class: Drupal\ticket_management\Service\TicketStateMachine
 

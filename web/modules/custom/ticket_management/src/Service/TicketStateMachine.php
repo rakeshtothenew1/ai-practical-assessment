@@ -9,6 +9,15 @@ use Drupal\ticket_management\Exception\InvalidTicketTransitionException;
 
 /**
  * Standalone service enforcing ticket status transitions.
+ *
+ * Transition map:
+ * - open => [in_progress, cancelled]
+ * - in_progress => [resolved, cancelled]
+ * - resolved => [closed]
+ * - closed => []
+ * - cancelled => []
+ *
+ * Also enforced from Ticket::preSave() on every entity save path.
  */
 final class TicketStateMachine implements TicketStateMachineInterface {
 
@@ -37,6 +46,8 @@ final class TicketStateMachine implements TicketStateMachineInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @throws \Drupal\ticket_management\Exception\InvalidTicketTransitionException
    */
   public function assertTransition(string $from, string $to): void {
     $from = $this->normalize($from);
@@ -56,6 +67,8 @@ final class TicketStateMachine implements TicketStateMachineInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @throws \Drupal\ticket_management\Exception\InvalidTicketTransitionException
    */
   public function apply(TicketInterface $ticket, string $to): TicketInterface {
     $current = $ticket->getStatus();

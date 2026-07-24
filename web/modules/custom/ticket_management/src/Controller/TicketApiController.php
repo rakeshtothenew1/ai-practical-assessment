@@ -287,6 +287,7 @@ final class TicketApiController extends ControllerBase {
 
     try {
       $this->stateMachine->apply($ticket, $target);
+      $ticket->save();
     }
     catch (InvalidTicketTransitionException $e) {
       return $this->errorResponse($e->getMessage(), [
@@ -298,7 +299,6 @@ final class TicketApiController extends ControllerBase {
       ], Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
-    $ticket->save();
     return new JsonResponse($this->normalizeTicket($ticket));
   }
 

@@ -7,10 +7,12 @@ namespace Drupal\ticket_management\Entity;
 use Drupal\Core\Entity\Attribute\ContentEntityType;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityViewBuilder;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\ticket_management\Service\TicketStateMachineInterface;
 use Drupal\ticket_management\TicketAccessControlHandler;
 use Drupal\ticket_management\TicketListBuilder;
 use Drupal\user\UserInterface;
@@ -106,6 +108,45 @@ class Ticket extends ContentEntityBase implements TicketInterface {
   public function getAssignedTo(): ?UserInterface {
     $entity = $this->get('assigned_to')->entity;
     return $entity instanceof UserInterface ? $entity : NULL;
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * Enforces status rules on every save path (REST, forms, entity API):
+   * - New tickets always start as open.
+   * - Status changes must be allowed by TicketStateMachine.
+   *
+   * @throws \Drupal\ticket_management\Exception\InvalidTicketTransitionException
+   *   When an update attempts an illegal status transition.
+   */
+  public function preSave(EntityStorageInterface $storage): void {
+    parent::preSave($storage);
+
+    if ($this->isNew()) {
+      // Initial status is always open; never trust caller-supplied status on create.
+      $this->setStatus('open');
+      if (!$this->get('created_by')->target_id) {
+        $uid = (int) \Drupal::currentUser()->id();
+        if ($uid > 0) {
+          $this->set('created_by', $uid);
+        }
+      }
+      return;
+    }
+
+    $original = $this->getOriginal();
+    if (!$original instanceof TicketInterface) {
+      return;
+    }
+
+    $from = $original->getStatus();
+    $to = $this->getStatus();
+    if ($from !== $to) {
+      /** @var \Drupal\ticket_management\Service\TicketStateMachineInterface $state_machine */
+      $state_machine = \Drupal::service('ticket_management.state_machine');
+      $state_machine->assertTransition($from, $to);
+    }
   }
 
   /**
