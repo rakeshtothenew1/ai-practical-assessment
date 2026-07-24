@@ -1,0 +1,67 @@
+{#
+/**
+ * @file
+ * Create ticket form (submitted via fetch to POST /api/tickets).
+ */
+#}
+<div class="tm-app tm-create" data-tm-page="create">
+  <header class="tm-header">
+    <h1 class="tm-title">{{ 'Create ticket'|t }}</h1>
+    <a class="tm-btn" href="{{ list_url }}">{{ 'Back to list'|t }}</a>
+  </header>
+
+  <div class="tm-banner tm-banner--error" data-tm-error hidden role="alert"></div>
+  <div class="tm-banner tm-banner--success" data-tm-success hidden role="status"></div>
+
+  <form class="tm-form" data-tm-create-form novalidate>
+    <div class="tm-field">
+      <label for="tm-title">{{ 'Title'|t }} <span class="tm-required">*</span></label>
+      <input id="tm-title" name="title" type="text" maxlength="255" required data-tm-field="title">
+      <p class="tm-field-error" data-tm-field-error="title" hidden></p>
+    </div>
+
+    <div class="tm-field">
+      <label for="tm-description">{{ 'Description'|t }} <span class="tm-required">*</span></label>
+      <textarea id="tm-description" name="description" rows="6" required data-tm-field="description"></textarea>
+      <p class="tm-field-error" data-tm-field-error="description" hidden></p>
+    </div>
+
+    <div class="tm-field">
+      <label for="tm-priority">{{ 'Priority'|t }} <span class="tm-required">*</span></label>
+      <select id="tm-priority" name="priority" required data-tm-field="priority">
+        <option value="low">{{ 'Low'|t }}</option>
+        <option value="medium" selected>{{ 'Medium'|t }}</option>
+        <option value="high">{{ 'High'|t }}</option>
+      </select>
+      <p class="tm-field-error" data-tm-field-error="priority" hidden></p>
+    </div>
+
+    <div class="tm-field">
+      <label for="tm-assignee">{{ 'Assign to'|t }}</label>
+      {% if assignees is empty %}
+        <p class="tm-muted">{{ 'No users available to assign.'|t }}</p>
+        <input type="hidden" name="assignedTo" value="" data-tm-field="assignedTo">
+      {% else %}
+        <select id="tm-assignee" name="assignedTo" data-tm-field="assignedTo">
+          <option value="">{{ '— Unassigned —'|t }}</option>
+          {% for uid, name in assignees %}
+            <option value="{{ uid }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+      {% endif %}
+      <p class="tm-field-error" data-tm-field-error="assignedTo" hidden></p>
+    </div>
+
+    <p class="tm-muted">{{ 'New tickets are created with status Open.'|t }}</p>
+
+    <div class="tm-form-actions">
+      <button type="submit" class="tm-btn tm-btn--primary" data-tm-submit>{{ 'Create'|t }}</button>
+      <a class="tm-btn" href="{{ list_url }}">{{ 'Cancel'|t }}</a>
+    </div>
+
+    <div class="tm-state tm-state--loading" data-tm-state="loading" hidden>
+      <span class="tm-spinner" aria-hidden="true"></span>
+      <p>{{ 'Saving…'|t }}</p>
+    </div>
+  </form>
+</div>

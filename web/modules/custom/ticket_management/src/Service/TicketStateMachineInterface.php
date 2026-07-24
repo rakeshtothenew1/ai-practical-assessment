@@ -32,6 +32,13 @@ interface TicketStateMachineInterface {
   public function getAllowedTargets(string $from): array;
 
   /**
+   * Returns the full transition map.
+   *
+   * @return array<string, string[]>
+   */
+  public function getTransitionMap(): array;
+
+  /**
    * Applies a status transition on the ticket entity (does not save).
    *
    * Re-reads the current status from the entity before validating.

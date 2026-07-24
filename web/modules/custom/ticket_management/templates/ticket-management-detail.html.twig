@@ -1,0 +1,55 @@
+{#
+/**
+ * @file
+ * Ticket detail: fields, status transitions, comments (loaded via fetch).
+ */
+#}
+<div class="tm-app tm-detail" data-tm-page="detail" data-tm-ticket-id="{{ ticket_id }}">
+  <header class="tm-header">
+    <h1 class="tm-title" data-tm-detail-title>{{ 'Ticket'|t }} #{{ ticket_id }}</h1>
+    <a class="tm-btn" href="{{ list_url }}">{{ 'Back to list'|t }}</a>
+  </header>
+
+  <div class="tm-banner tm-banner--error" data-tm-error hidden role="alert"></div>
+  <div class="tm-banner tm-banner--success" data-tm-success hidden role="status"></div>
+
+  <div class="tm-panel" data-tm-detail-root aria-live="polite">
+    <div class="tm-state tm-state--loading" data-tm-state="loading">
+      <span class="tm-spinner" aria-hidden="true"></span>
+      <p>{{ 'Loading ticket…'|t }}</p>
+    </div>
+    <div class="tm-state tm-state--empty" data-tm-state="empty" hidden>
+      <p>{{ 'Ticket not found.'|t }}</p>
+    </div>
+    <div class="tm-state tm-state--success" data-tm-state="success" hidden>
+      <section class="tm-card" data-tm-ticket-fields></section>
+
+      {% if can_transition %}
+        <section class="tm-card">
+          <h2 class="tm-subtitle">{{ 'Update status'|t }}</h2>
+          <div class="tm-status-actions" data-tm-status-actions></div>
+          <p class="tm-muted" data-tm-status-terminal hidden>{{ 'No further transitions are available for this status.'|t }}</p>
+        </section>
+      {% endif %}
+
+      <section class="tm-card">
+        <h2 class="tm-subtitle">{{ 'Comments'|t }}</h2>
+        <div class="tm-state tm-state--empty" data-tm-comments-empty hidden>
+          <p>{{ 'No comments yet.'|t }}</p>
+        </div>
+        <ul class="tm-comments" data-tm-comments></ul>
+
+        {% if can_comment %}
+          <form class="tm-form tm-comment-form" data-tm-comment-form novalidate>
+            <div class="tm-field">
+              <label for="tm-comment-message">{{ 'Add a comment'|t }} <span class="tm-required">*</span></label>
+              <textarea id="tm-comment-message" name="message" rows="3" required data-tm-field="message"></textarea>
+              <p class="tm-field-error" data-tm-field-error="message" hidden></p>
+            </div>
+            <button type="submit" class="tm-btn tm-btn--primary" data-tm-comment-submit>{{ 'Post comment'|t }}</button>
+          </form>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</div>

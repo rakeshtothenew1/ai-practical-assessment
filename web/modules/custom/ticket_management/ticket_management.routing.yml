@@ -7,6 +7,24 @@ ticket_management.overview:
   requirements:
     _permission: 'access ticket overview'
 
+ticket_management.ticket_add:
+  path: '/tickets/add'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketController::add'
+    _title: 'Create ticket'
+  requirements:
+    _permission: 'create ticket'
+    _user_is_logged_in: 'TRUE'
+
+ticket_management.ticket_view:
+  path: '/tickets/{ticket}'
+  defaults:
+    _controller: '\Drupal\ticket_management\Controller\TicketController::view'
+    _title: 'Ticket'
+  requirements:
+    _permission: 'view ticket'
+    ticket: \d+
+
 # ---------------------------------------------------------------------------
 # Custom REST API (JSON)
 # ---------------------------------------------------------------------------

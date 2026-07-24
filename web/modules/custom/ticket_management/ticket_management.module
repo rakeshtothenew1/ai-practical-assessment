@@ -16,3 +16,34 @@ function ticket_management_help($route_name, \Drupal\Core\Routing\RouteMatchInte
       return '<p>' . t('Provides a support ticket management system with custom Ticket and Ticket Comment entities.') . '</p>';
   }
 }
+
+/**
+ * Implements hook_theme().
+ */
+function ticket_management_theme($existing, $type, $theme, $path) {
+  return [
+    'ticket_management_list' => [
+      'variables' => [
+        'can_create' => FALSE,
+        'create_url' => '',
+      ],
+      'template' => 'ticket-management-list',
+    ],
+    'ticket_management_create' => [
+      'variables' => [
+        'assignees' => [],
+        'list_url' => '',
+      ],
+      'template' => 'ticket-management-create',
+    ],
+    'ticket_management_detail' => [
+      'variables' => [
+        'ticket_id' => 0,
+        'list_url' => '',
+        'can_transition' => FALSE,
+        'can_comment' => FALSE,
+      ],
+      'template' => 'ticket-management-detail',
+    ],
+  ];
+}

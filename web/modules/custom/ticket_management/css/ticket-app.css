@@ -1,0 +1,319 @@
+/**
+ * Ticket Management UI — plain CSS (no build step).
+ */
+
+.tm-app {
+  --tm-bg: #f6f7f9;
+  --tm-card: #fff;
+  --tm-border: #d7dbe2;
+  --tm-text: #1b1f24;
+  --tm-muted: #5c6570;
+  --tm-primary: #0b5fff;
+  --tm-primary-hover: #0047d1;
+  --tm-danger: #b42318;
+  --tm-danger-bg: #fef3f2;
+  --tm-success: #027a48;
+  --tm-success-bg: #ecfdf3;
+  --tm-radius: 8px;
+  max-width: 960px;
+  margin: 0 auto 2rem;
+  color: var(--tm-text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.tm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.tm-title {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.tm-subtitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+}
+
+.tm-btn {
+  display: inline-block;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--tm-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--tm-text);
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.tm-btn:hover:not(:disabled) {
+  background: var(--tm-bg);
+}
+
+.tm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tm-btn--primary {
+  background: var(--tm-primary);
+  border-color: var(--tm-primary);
+  color: #fff;
+}
+
+.tm-btn--primary:hover:not(:disabled) {
+  background: var(--tm-primary-hover);
+}
+
+.tm-btn--status {
+  margin: 0 0.5rem 0.5rem 0;
+}
+
+.tm-filters,
+.tm-form,
+.tm-card {
+  background: var(--tm-card);
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.tm-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.tm-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.tm-field label {
+  font-weight: 600;
+}
+
+.tm-field input,
+.tm-field select,
+.tm-field textarea {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--tm-border);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.tm-field-error {
+  color: var(--tm-danger);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.tm-required {
+  color: var(--tm-danger);
+}
+
+.tm-muted {
+  color: var(--tm-muted);
+  font-size: 0.95rem;
+}
+
+.tm-banner {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.tm-banner--error {
+  background: var(--tm-danger-bg);
+  color: var(--tm-danger);
+  border: 1px solid #fecdca;
+}
+
+.tm-banner--success {
+  background: var(--tm-success-bg);
+  color: var(--tm-success);
+  border: 1px solid #abefc6;
+}
+
+.tm-state {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.tm-state--success {
+  padding: 0;
+  text-align: left;
+}
+
+.tm-spinner {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid var(--tm-border);
+  border-top-color: var(--tm-primary);
+  border-radius: 50%;
+  animation: tm-spin 0.8s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes tm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tm-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--tm-card);
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-radius);
+  overflow: hidden;
+}
+
+.tm-table th,
+.tm-table td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--tm-border);
+  text-align: left;
+}
+
+.tm-table th {
+  background: var(--tm-bg);
+  font-weight: 600;
+}
+
+.tm-table a {
+  color: var(--tm-primary);
+  text-decoration: none;
+}
+
+.tm-table a:hover {
+  text-decoration: underline;
+}
+
+.tm-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.tm-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background: #eef2ff;
+  color: #3538cd;
+}
+
+.tm-badge--open {
+  background: #eef2ff;
+  color: #3538cd;
+}
+
+.tm-badge--in_progress {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.tm-badge--resolved {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+.tm-badge--closed {
+  background: #f2f4f7;
+  color: #344054;
+}
+
+.tm-badge--cancelled {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.tm-dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+}
+
+.tm-dl dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tm-muted);
+  margin: 0 0 0.15rem;
+}
+
+.tm-dl dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.tm-dl-block {
+  grid-column: 1 / -1;
+}
+
+.tm-comments {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.tm-comment {
+  border: 1px solid var(--tm-border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  background: #fafbfc;
+}
+
+.tm-comment-meta {
+  margin: 0 0 0.35rem;
+  color: var(--tm-muted);
+  font-size: 0.85rem;
+}
+
+.tm-comment-body {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.tm-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .tm-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .tm-dl {
+    grid-template-columns: 1fr;
+  }
+
+  .tm-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

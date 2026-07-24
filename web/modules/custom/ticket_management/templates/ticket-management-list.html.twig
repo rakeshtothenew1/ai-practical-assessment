@@ -1,0 +1,64 @@
+{#
+/**
+ * @file
+ * Ticket list: search, status filter, results via fetch().
+ */
+#}
+<div class="tm-app tm-list" data-tm-page="list">
+  <header class="tm-header">
+    <h1 class="tm-title">{{ 'Tickets'|t }}</h1>
+    {% if can_create %}
+      <a class="tm-btn tm-btn--primary" href="{{ create_url }}">{{ 'Create ticket'|t }}</a>
+    {% endif %}
+  </header>
+
+  <div class="tm-banner tm-banner--error" data-tm-error hidden role="alert"></div>
+
+  <form class="tm-filters" data-tm-filters>
+    <div class="tm-field">
+      <label for="tm-search">{{ 'Search'|t }}</label>
+      <input id="tm-search" name="search" type="search" placeholder="{{ 'Title or description'|t }}" data-tm-search>
+    </div>
+    <div class="tm-field">
+      <label for="tm-status">{{ 'Status'|t }}</label>
+      <select id="tm-status" name="status" data-tm-status>
+        <option value="">{{ 'All statuses'|t }}</option>
+        <option value="open">{{ 'Open'|t }}</option>
+        <option value="in_progress">{{ 'In Progress'|t }}</option>
+        <option value="resolved">{{ 'Resolved'|t }}</option>
+        <option value="closed">{{ 'Closed'|t }}</option>
+        <option value="cancelled">{{ 'Cancelled'|t }}</option>
+      </select>
+    </div>
+    <div class="tm-filter-actions">
+      <button type="submit" class="tm-btn tm-btn--primary" data-tm-apply>{{ 'Apply'|t }}</button>
+      <button type="reset" class="tm-btn" data-tm-reset>{{ 'Reset'|t }}</button>
+    </div>
+  </form>
+
+  <div class="tm-panel" data-tm-results aria-live="polite">
+    <div class="tm-state tm-state--loading" data-tm-state="loading" hidden>
+      <span class="tm-spinner" aria-hidden="true"></span>
+      <p>{{ 'Loading tickets…'|t }}</p>
+    </div>
+    <div class="tm-state tm-state--empty" data-tm-state="empty" hidden>
+      <p>{{ 'No tickets found.'|t }}</p>
+      <p class="tm-muted">{{ 'Try clearing filters or create a new ticket.'|t }}</p>
+    </div>
+    <div class="tm-state tm-state--success" data-tm-state="success" hidden>
+      <table class="tm-table">
+        <thead>
+          <tr>
+            <th>{{ 'ID'|t }}</th>
+            <th>{{ 'Title'|t }}</th>
+            <th>{{ 'Status'|t }}</th>
+            <th>{{ 'Priority'|t }}</th>
+            <th>{{ 'Updated'|t }}</th>
+          </tr>
+        </thead>
+        <tbody data-tm-rows></tbody>
+      </table>
+      <nav class="tm-pager" data-tm-pager hidden></nav>
+    </div>
+  </div>
+</div>

@@ -6,10 +6,20 @@ Custom Drupal 11 module for the Support Ticket Management System.
 
 ```bash
 ddev drush en ticket_management -y
+ddev drush updb -y
 ddev drush cr
 ```
 
-## Structure
+## UI
 
-- Custom entities, services, REST, and Twig UI will live under `src/` and module root.
-- Namespace: `Drupal\ticket_management\` (PSR-4 via Drupal core conventions).
+| Path | Screen |
+|------|--------|
+| `/tickets` | List + search/status filter (`GET /api/tickets`) |
+| `/tickets/add` | Create form (`POST /api/tickets`) |
+| `/tickets/{id}` | Detail, status buttons, comments |
+
+Assets: `js/ticket-app.js`, `css/ticket-app.css` via library `ticket_management/ticket_app` (no Node/npm).
+
+## API
+
+See assessment `api-contract.md`. Status transitions: `PATCH /api/tickets/{id}/status`.

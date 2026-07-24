@@ -67,6 +67,13 @@ final class TicketStateMachine implements TicketStateMachineInterface {
 
   /**
    * {@inheritdoc}
+   */
+  public function getTransitionMap(): array {
+    return self::TRANSITIONS;
+  }
+
+  /**
+   * {@inheritdoc}
    *
    * @throws \Drupal\ticket_management\Exception\InvalidTicketTransitionException
    */
