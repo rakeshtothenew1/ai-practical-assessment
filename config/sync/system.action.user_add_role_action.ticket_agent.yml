@@ -1,0 +1,14 @@
+uuid: f58884f4-274f-4e41-9440-e0c19e143bf1
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.ticket_agent
+  module:
+    - user
+id: user_add_role_action.ticket_agent
+label: 'Add the Ticket agent role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: ticket_agent

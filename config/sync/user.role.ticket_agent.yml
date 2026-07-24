@@ -1,0 +1,18 @@
+uuid: faccd7d0-2fa4-4103-95ed-46d466f7763e
+langcode: en
+status: true
+dependencies:
+  module:
+    - ticket_management
+id: ticket_agent
+label: 'Ticket agent'
+weight: 4
+is_admin: false
+permissions:
+  - 'access ticket overview'
+  - 'access user profiles'
+  - 'create ticket'
+  - 'create ticket comment'
+  - 'edit ticket'
+  - 'transition ticket status'
+  - 'view ticket'

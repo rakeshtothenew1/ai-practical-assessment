@@ -1,0 +1,14 @@
+uuid: 772cca37-a259-47a5-acf5-905126d36097
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.ticket_agent
+  module:
+    - user
+id: user_remove_role_action.ticket_agent
+label: 'Remove the Ticket agent role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: ticket_agent
